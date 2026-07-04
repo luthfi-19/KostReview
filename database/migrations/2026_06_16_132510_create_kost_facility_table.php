@@ -13,13 +13,9 @@ return new class extends Migration
     {
         Schema::create('kost_facility', function (Blueprint $table) {
             $table->id();
-            
-            // Jembatan ke tabel kosts
-            $table->foreignId('kost_id')->constrained('kosts')->onDelete('cascade');
-            
-            // Jembatan ke tabel facilities
-            $table->foreignId('facility_id')->constrained('facilities')->onDelete('cascade');
-            
+            // Sambungkan ke tabel kosts dan facilities
+            $table->foreignId('kost_id')->constrained()->onDelete('cascade');
+            $table->foreignId('facility_id')->constrained()->onDelete('cascade');
             $table->timestamps();
         });
     }

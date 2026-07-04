@@ -13,13 +13,8 @@ return new class extends Migration
     {
         Schema::create('kost_campus', function (Blueprint $table) {
             $table->id();
-            
-            // Jembatan ke tabel kosts
-            $table->foreignId('kost_id')->constrained('kosts')->onDelete('cascade');
-            
-            // Jembatan ke tabel campuses
-            $table->foreignId('campus_id')->constrained('campuses')->onDelete('cascade');
-            
+            $table->foreignId('kost_id')->constrained()->onDelete('cascade');
+            $table->foreignId('campus_id')->constrained()->onDelete('cascade');
             $table->timestamps();
         });
     }

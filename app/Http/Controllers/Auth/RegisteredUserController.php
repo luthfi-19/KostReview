@@ -48,6 +48,14 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
-        return redirect(route('dashboard', absolute: false));
+        // POLISI LALU LINTAS: Lempar user sesuai jabatannya (role) setelah register
+        if ($user->role === 'admin') {
+            return redirect()->route('admin.dashboard');
+        } elseif ($user->role === 'owner') {
+            return redirect()->route('owner.dashboard');
+        }
+
+        // Kalau yang register student (mahasiswa), lempar ke halaman utama
+        return redirect()->route('home');
     }
 }

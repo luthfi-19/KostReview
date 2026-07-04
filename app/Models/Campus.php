@@ -2,14 +2,17 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Campus extends Model
 {
-    protected $fillable = ['name', 'address'];
-    
+    use HasFactory;
+
+    protected $fillable = ['name'];
+
     public function kosts()
     {
-        return $this->belongsToMany(Kost::class);
+        return $this->belongsToMany(Kost::class, 'kost_campus');
     }
 }

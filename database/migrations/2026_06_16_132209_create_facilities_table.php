@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('facilities', function (Blueprint $table) {
             $table->id();
-            $table->string('name'); // Contoh isi nanti: "WiFi", "AC", "Kasur"
+            $table->string('name'); // Untuk nyimpen nama fasilitas: WiFi, AC, dll
             $table->timestamps();
         });
     }
