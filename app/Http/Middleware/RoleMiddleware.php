@@ -16,9 +16,13 @@ class RoleMiddleware
     public function handle(Request $request, Closure $next, $role): Response
     {
         // Cek apakah user sudah login, DAN apakah rolenya SESUAI dengan yang diminta
-        if ($request->user() && $request->user()->role !== $role) {
-            
-            // Kalau rolenya gak sesuai, tampilkan error 403 (Akses Ditolak)
+        // Kalau belum login, tolak langsung
+        if (!$request->user()) {
+            abort(403, 'Akses Ditolak: Lu harus login dulu!');
+        }
+
+        // Kalau rolenya gak sesuai, tampilkan error 403 (Akses Ditolak)
+        if ($request->user()->role !== $role) {
             abort(403, 'Akses Ditolak: Lu bukan ' . $role . ' bang!');
         }
 

@@ -44,6 +44,11 @@ class OccupancyController extends Controller
             abort(403, 'Bukan kosan lu bang!');
         }
 
+        // Cek status: hanya bisa approve jika statusnya pending
+        if ($occupancy->status !== 'pending') {
+            return back()->with('error', 'Pengajuan ini sudah diproses sebelumnya!');
+        }
+
         $occupancy->update(['status' => 'approved']);
         return back()->with('success', 'Sip! Pengajuan mahasiswa berhasil disetujui.');
     }
@@ -54,6 +59,11 @@ class OccupancyController extends Controller
         // Keamanan
         if ($occupancy->kost->user_id !== Auth::id()) {
             abort(403, 'Bukan kosan lu bang!');
+        }
+
+        // Cek status: hanya bisa reject jika statusnya pending
+        if ($occupancy->status !== 'pending') {
+            return back()->with('error', 'Pengajuan ini sudah diproses sebelumnya!');
         }
 
         $occupancy->update(['status' => 'rejected']);

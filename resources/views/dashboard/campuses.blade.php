@@ -4,55 +4,54 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Kelola Kampus - KostReview</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>body { background-color: #F8FAFC; font-family: 'Poppins', sans-serif; } .bg-dark-navy { background-color: #0F172A !important; }</style>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body>
-    <nav class="navbar navbar-dark bg-dark-navy shadow-sm mb-4">
-        <div class="container">
-            <a class="navbar-brand fw-bold" href="{{ route('admin.dashboard') }}">&larr; Kembali ke Dashboard Admin</a>
+<body class="bg-gray-50 font-sans antialiased">
+    <nav class="bg-slate-900 shadow-sm mb-6">
+        <div class="max-w-7xl mx-auto px-4 py-3">
+            <a class="text-lg font-bold text-white" href="{{ route('admin.dashboard') }}">&larr; Kembali ke Dashboard Admin</a>
         </div>
     </nav>
 
-    <div class="container mb-5">
+    <div class="max-w-7xl mx-auto px-4 mb-10">
         @if(session('success'))
-            <div class="alert alert-success shadow-sm">✅ {{ session('success') }}</div>
+            <div class="bg-green-50 text-green-800 px-4 py-3 rounded-lg shadow-sm mb-4 text-sm">✅ {{ session('success') }}</div>
         @endif
 
-        <div class="row">
-            <div class="col-md-4 mb-4">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-header bg-primary text-white fw-bold">➕ Tambah Kampus Baru</div>
-                    <div class="card-body">
+        <div class="flex flex-col md:flex-row gap-6">
+            <div class="w-full md:w-1/3">
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                    <div class="bg-indigo-600 text-white px-5 py-3 text-sm font-bold">➕ Tambah Kampus Baru</div>
+                    <div class="p-5">
                         <form action="{{ route('admin.campuses.store') }}" method="POST">
                             @csrf
-                            <div class="mb-3">
-                                <label class="form-label text-muted">Nama Kampus Lengkap</label>
-                                <input type="text" name="name" class="form-control" placeholder="Contoh: Universitas Brawijaya" required>
+                            <div class="mb-4">
+                                <label class="block text-sm text-gray-500 mb-1">Nama Kampus Lengkap</label>
+                                <input type="text" name="name" class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm" placeholder="Contoh: Universitas Brawijaya" required>
                             </div>
-                            <button type="submit" class="btn btn-primary w-100 fw-bold">Simpan Kampus</button>
+                            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold py-2 rounded-lg transition">Simpan Kampus</button>
                         </form>
                     </div>
                 </div>
             </div>
 
-            <div class="col-md-8">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-header bg-dark-navy text-white fw-bold">🎓 Daftar Kampus Terdaftar</div>
-                    <div class="card-body p-0">
-                        <table class="table table-hover align-middle text-center mb-0">
-                            <thead class="table-light">
-                                <tr><th>No</th><th>Nama Kampus</th><th>Aksi</th></tr>
+            <div class="w-full md:w-2/3">
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                    <div class="bg-slate-900 text-white px-5 py-3 text-sm font-bold">🎓 Daftar Kampus Terdaftar</div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200 text-center">
+                            <thead class="bg-gray-50">
+                                <tr><th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase">No</th><th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Nama Kampus</th><th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Aksi</th></tr>
                             </thead>
-                            <tbody>
+                            <tbody class="divide-y divide-gray-100">
                                 @foreach($campuses as $index => $campus)
-                                <tr>
-                                    <td>{{ $index + 1 }}</td>
-                                    <td class="fw-bold">{{ $campus->name }}</td>
-                                    <td>
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-4 py-3 text-sm">{{ $index + 1 }}</td>
+                                    <td class="px-4 py-3 text-sm font-bold">{{ $campus->name }}</td>
+                                    <td class="px-4 py-3">
                                         <form action="{{ route('admin.campuses.destroy', $campus->id) }}" method="POST" onsubmit="return confirm('Yakin hapus kampus ini?');">
                                             @csrf @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-danger">Hapus</button>
+                                            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition">Hapus</button>
                                         </form>
                                     </td>
                                 </tr>

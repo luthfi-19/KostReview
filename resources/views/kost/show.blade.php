@@ -4,171 +4,150 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Detail Kos - {{ $kost->name }}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
-        body { background-color: #F3F4F6; font-family: 'Poppins', sans-serif; }
-        .bg-navy { background-color: #1E3A8A !important; }
-        .text-navy { color: #1E3A8A !important; }
-        .text-pink { color: #EC4899 !important; }
-        .btn-pink { background-color: #EC4899; border-color: #EC4899; color: #FFFFFF; }
-        .btn-pink:hover { background-color: #d63d86; border-color: #d63d86; color: #FFFFFF; }
-        .carousel-item img { height: 400px; object-fit: cover; border-radius: 12px; }
-        .card { border-radius: 12px; border: none; }
+        .carousel-img { height: 400px; object-fit: cover; border-radius: 12px; }
     </style>
 </head>
-<body>
-    
-    <nav class="navbar navbar-dark bg-navy shadow-sm mb-4">
-        <div class="container">
-            <a class="navbar-brand fw-bold" href="{{ route('home') }}">
+<body class="bg-gray-50 font-sans antialiased">
+
+    <nav class="bg-navy shadow-sm mb-4">
+        <div class="max-w-7xl mx-auto px-4 py-3">
+            <a class="text-lg font-bold text-white" href="{{ route('home') }}">
                 &larr; Kembali ke Pencarian
             </a>
         </div>
     </nav>
 
-    <div class="container mb-5">
-        <div class="row">
-            
-            <div class="col-lg-7 mb-4">
-                <div class="card shadow-sm p-2">
+    <div class="max-w-7xl mx-auto px-4 mb-10">
+        <div class="flex flex-col lg:flex-row gap-6">
+
+            {{-- Kolom Kiri: Gambar --}}
+            <div class="w-full lg:w-7/12">
+                <div class="bg-white rounded-xl shadow-sm p-2">
                     @if($kost->images->isNotEmpty())
-                        <div id="kostCarousel" class="carousel slide" data-bs-ride="carousel">
-                            <div class="carousel-inner">
+                        <div x-data="{ active: 0 }" class="relative">
+                            <div class="overflow-hidden rounded-xl">
                                 @foreach($kost->images as $index => $image)
-                                    <div class="carousel-item {{ $index == 0 ? 'active' : '' }}">
-                                        <img src="{{ asset('storage/' . $image->image_path) }}" class="d-block w-100" alt="Foto Kos">
-                                    </div>
+                                    <img x-show="active === {{ $index }}" src="{{ asset('storage/' . $image->image_path) }}" class="w-full carousel-img" alt="Foto Kos">
                                 @endforeach
                             </div>
                             @if($kost->images->count() > 1)
-                                <button class="carousel-control-prev" type="button" data-bs-target="#kostCarousel" data-bs-slide="prev">
-                                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                                    <span class="visually-hidden">Previous</span>
-                                </button>
-                                <button class="carousel-control-next" type="button" data-bs-target="#kostCarousel" data-bs-slide="next">
-                                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                                    <span class="visually-hidden">Next</span>
-                                </button>
+                                <button @click="active = active > 0 ? active - 1 : {{ $kost->images->count() - 1 }}" class="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full w-8 h-8 flex items-center justify-center shadow text-gray-700">&lsaquo;</button>
+                                <button @click="active = active < {{ $kost->images->count() - 1 }} ? active + 1 : 0" class="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full w-8 h-8 flex items-center justify-center shadow text-gray-700">&rsaquo;</button>
                             @endif
                         </div>
                     @else
-                        <div class="bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 400px; border-radius: 12px;">
+                        <div class="bg-gray-300 text-white flex items-center justify-center rounded-xl" style="height: 400px;">
                             <h3>Foto belum tersedia</h3>
                         </div>
                     @endif
                 </div>
             </div>
 
-            <div class="col-lg-5">
-                <div class="card shadow-sm h-100">
-                    <div class="card-body p-4">
-                        <h2 class="fw-bold text-navy mb-2">{{ $kost->name }}</h2>
-                        <h3 class="text-pink fw-bold mb-4">
-                            Rp {{ number_format($kost->price_per_month, 0, ',', '.') }} <span class="fs-6 text-muted fw-normal">/ bulan</span>
-                        </h3>
-                        
-                        <h5 class="fw-bold text-navy mt-4 mb-2">📍 Alamat Lengkap</h5>
-                        <p class="text-muted">{{ $kost->address }}</p>
+            {{-- Kolom Kanan: Info --}}
+            <div class="w-full lg:w-5/12">
+                <div class="bg-white rounded-xl shadow-sm h-full p-6">
+                    <h2 class="text-2xl font-bold text-navy mb-1">{{ $kost->name }}</h2>
+                    <h3 class="text-pink font-bold text-xl mb-4">
+                        Rp {{ number_format($kost->price_per_month, 0, ',', '.') }} <span class="text-sm text-gray-400 font-normal">/ bulan</span>
+                    </h3>
 
-                       <h6 class="fw-bold text-navy mt-4 mb-3">✨ Fasilitas Tersedia</h6>
-                        <div class="d-flex flex-wrap gap-2 mb-4">
-                            @forelse($kost->facilities as $facility)
-                                <span class="badge px-3 py-2 text-navy border border-primary" style="background-color: #F0F4FF; font-weight: 600; font-size: 0.85rem; border-radius: 8px;">
-                                    ✓ {{ $facility->name }}
-                                </span>
-                            @empty
-                                <span class="text-muted fst-italic small">Belum ada informasi fasilitas.</span>
-                            @endforelse
+                    <h5 class="font-bold text-navy mt-4 mb-1 text-sm">📍 Alamat Lengkap</h5>
+                    <p class="text-gray-500 text-sm">{{ $kost->address }}</p>
+
+                    <h6 class="font-bold text-navy mt-4 mb-2 text-sm">✨ Fasilitas Tersedia</h6>
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        @forelse($kost->facilities as $facility)
+                            <span class="bg-blue-50 text-navy border border-blue-200 text-xs font-semibold px-3 py-1.5 rounded-lg">
+                                ✓ {{ $facility->name }}
+                            </span>
+                        @empty
+                            <span class="text-gray-400 italic text-xs">Belum ada informasi fasilitas.</span>
+                        @endforelse
+                    </div>
+
+                    <h6 class="font-bold text-navy mt-4 mb-2 text-sm">🎓 Kampus Terdekat</h6>
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        @forelse($kost->campuses as $campus)
+                            <span class="bg-navy text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow-sm">
+                                📍 {{ $campus->name }}
+                            </span>
+                        @empty
+                            <span class="text-gray-400 italic text-xs">Belum ada informasi kampus terdekat.</span>
+                        @endforelse
+                    </div>
+
+                    <h5 class="font-bold text-navy mt-4 mb-1 text-sm">📝 Deskripsi Kos</h5>
+                    <p class="text-gray-500 text-sm whitespace-pre-line">{{ $kost->description }}</p>
+
+                    <hr class="my-4 border-gray-200">
+
+                    @if (session('success'))
+                        <div class="bg-green-50 text-green-800 rounded-lg px-4 py-3 text-sm mt-3">
+                            ✅ {{ session('success') }}
                         </div>
+                    @endif
 
-                        <h6 class="fw-bold text-navy mt-4 mb-3">🎓 Kampus Terdekat</h6>
-                        <div class="d-flex flex-wrap gap-2 mb-4">
-                            @forelse($kost->campuses as $campus)
-                                <span class="badge bg-navy px-3 py-2 text-white shadow-sm" style="font-weight: 600; font-size: 0.85rem; border-radius: 8px;">
-                                    📍 {{ $campus->name }}
-                                </span>
-                            @empty
-                                <span class="text-muted fst-italic small">Belum ada informasi kampus terdekat.</span>
-                            @endforelse
+                    @if (session('error'))
+                        <div class="bg-red-50 text-red-800 rounded-lg px-4 py-3 text-sm mt-3">
+                            ⚠️ {{ session('error') }}
                         </div>
+                    @endif
 
-                        <h5 class="fw-bold text-navy mt-4 mb-2">📝 Deskripsi Kos</h5>
-                        <p class="text-muted" style="white-space: pre-line;">{{ $kost->description }}</p>
+                    <form action="{{ route('student.occupancy.store', $kost->id) }}" method="POST" class="mt-4">
+                        @csrf
+                        <button type="submit" class="w-full bg-pink hover:bg-pink-600 text-white font-bold py-3 px-4 rounded-lg text-sm transition">
+                            Ajukan Sewa / Hunian
+                        </button>
+                    </form>
+                    <hr class="my-8 border-gray-200">
 
-                        <hr class="my-4">
-                        
-                       @if (session('success'))
-                            <div class="alert alert-success mt-3 shadow-sm border-0">
-                                ✅ {{ session('success') }}
-                            </div>
-                        @endif
+                    <h4 class="font-bold text-navy mb-4 text-base">⭐ Ulasan Penghuni</h4>
 
-                        @if (session('error'))
-                            <div class="alert alert-danger mt-3 shadow-sm border-0">
-                                ⚠️ {{ session('error') }}
-                            </div>
-                        @endif
-
-                        <form action="{{ route('student.occupancy.store', $kost->id) }}" method="POST" class="mt-4">
-                            @csrf
-                            <div class="d-grid gap-2">
-                                <button type="submit" class="btn btn-pink btn-lg fw-bold">Ajukan Sewa / Hunian</button>
-                            </div>
-                        </form>
-                        <hr class="my-5">
-                        
-                        <h4 class="fw-bold text-navy mb-4">⭐ Ulasan Penghuni</h4>
-                        
-                        <div class="mb-4">
-                            @forelse($kost->reviews as $review)
-                                <div class="card bg-light border-0 mb-3 shadow-sm">
-                                    <div class="card-body p-3">
-                                        <div class="d-flex justify-content-between">
-                                            <strong class="text-navy">{{ $review->user->name }}</strong>
-                                            <span class="text-warning fw-bold">
-                                                @for($i = 1; $i <= 5; $i++)
-                                                    @if($i <= $review->rating) ★ @else ☆ @endif
-                                                @endfor
-                                            </span>
-                                        </div>
-                                        <p class="text-muted small mb-0 mt-2">{{ $review->comment }}</p>
-                                    </div>
+                    <div class="mb-4 space-y-3">
+                        @forelse($kost->reviews as $review)
+                            <div class="bg-gray-50 rounded-xl p-3">
+                                <div class="flex justify-between items-center">
+                                    <strong class="text-navy text-sm">{{ $review->user->name }}</strong>
+                                    <span class="text-yellow-500 font-bold text-sm">
+                                        @for($i = 1; $i <= 5; $i++)
+                                            @if($i <= $review->rating) ★ @else ☆ @endif
+                                        @endfor
+                                    </span>
                                 </div>
-                            @empty
-                                <p class="text-muted fst-italic">Belum ada ulasan untuk kos ini. Jadilah yang pertama!</p>
-                            @endforelse
-                        </div>
-
-                        <div class="card border border-pink shadow-sm">
-                            <div class="card-body">
-                                <h6 class="fw-bold text-pink mb-3">Tulis Ulasan Lu</h6>
-                                <form action="{{ route('student.review.store', $kost->id) }}" method="POST">
-                                    @csrf
-                                    <div class="mb-2">
-                                        <label class="form-label small fw-bold">Rating Bintang (1-5)</label>
-                                        <select name="rating" class="form-select form-select-sm" required>
-                                            <option value="5">⭐⭐⭐⭐⭐ (Sangat Bagus)</option>
-                                            <option value="4">⭐⭐⭐⭐ (Bagus)</option>
-                                            <option value="3">⭐⭐⭐ (Lumayan)</option>
-                                            <option value="2">⭐⭐ (Kurang)</option>
-                                            <option value="1">⭐ (Parah)</option>
-                                        </select>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label small fw-bold">Komentar</label>
-                                        <textarea name="comment" class="form-control form-control-sm" rows="3" placeholder="Gimana rasanya ngekos di sini?" required></textarea>
-                                    </div>
-                                    <button type="submit" class="btn btn-sm btn-pink fw-bold px-3">Kirim Ulasan</button>
-                                </form>
+                                <p class="text-gray-500 text-xs mt-1">{{ $review->comment }}</p>
                             </div>
-                        </div>
+                        @empty
+                            <p class="text-gray-400 italic text-sm">Belum ada ulasan untuk kos ini. Jadilah yang pertama!</p>
+                        @endforelse
+                    </div>
+
+                    <div class="border border-pink rounded-xl p-4">
+                        <h6 class="font-bold text-pink mb-3 text-sm">Tulis Ulasan Lu</h6>
+                        <form action="{{ route('student.review.store', $kost->id) }}" method="POST">
+                            @csrf
+                            <div class="mb-3">
+                                <label class="block text-xs font-bold text-gray-600 mb-1">Rating Bintang (1-5)</label>
+                                <select name="rating" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                                    <option value="5">⭐⭐⭐⭐⭐ (Sangat Bagus)</option>
+                                    <option value="4">⭐⭐⭐⭐ (Bagus)</option>
+                                    <option value="3">⭐⭐⭐ (Lumayan)</option>
+                                    <option value="2">⭐⭐ (Kurang)</option>
+                                    <option value="1">⭐ (Parah)</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="block text-xs font-bold text-gray-600 mb-1">Komentar</label>
+                                <textarea name="comment" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" rows="3" placeholder="Gimana rasanya ngekos di sini?" required></textarea>
+                            </div>
+                            <button type="submit" class="bg-pink hover:bg-pink-600 text-white text-xs font-bold px-4 py-2 rounded-lg transition">Kirim Ulasan</button>
+                        </form>
                     </div>
                 </div>
             </div>
 
         </div>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\KostController;
 use App\Http\Controllers\OccupancyController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Http\Request;
 
 // ==========================================================
@@ -48,8 +50,17 @@ Route::get('/kost/{kost}', [KostController::class, 'show'])->name('kost.show');
 // ==========================================================
 Route::middleware(['auth'])->group(function () {
 
+    Route::get('/profile/info', function () {
+            return view('profile.info');
+        })->name('profile.info');
+
+    // --- PROFILE ---
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
     // --- KELOMPOK MAHASISWA (Hanya bisa transaksi & review jika role student) ---
-    Route::middleware(['role:student'])->group(function () {
+    Route::middleware(['role:student', 'throttle:10,1'])->group(function () {
         Route::post('/kost/{kost}/apply', [OccupancyController::class, 'store'])->name('student.occupancy.store');
         Route::get('/my-occupancies', [OccupancyController::class, 'index'])->name('student.occupancy.index');
         Route::post('/kost/{kost}/review', [ReviewController::class, 'store'])->name('student.review.store');
@@ -79,108 +90,39 @@ Route::middleware(['auth'])->group(function () {
         Route::patch('/owner/occupancy/{occupancy}/reject', [OccupancyController::class, 'reject'])->name('owner.occupancy.reject');
     });
 
-});
+    //==========================================================
+    // KELOMPOK RUTE KHUSUS ADMIN (SANG MODERATOR)
+    // ==========================================================
+    Route::middleware(['role:admin', 'throttle:30,1'])->group(function () {
 
-//==========================================================
-// 3. KELOMPOK RUTE KHUSUS ADMIN (SANG MODERATOR)
-// ==========================================================
-    Route::middleware(['role:admin'])->group(function () {
-        
         // --- RUTE DASHBOARD ADMIN ---
-        Route::get('/admin/dashboard', function () {
-            // Hitung statistik seluruh aplikasi buat laporan admin
-            $totalStudents = \App\Models\User::where('role', 'student')->count();
-            $totalOwners = \App\Models\User::where('role', 'owner')->count();
-            $totalKosts = \App\Models\Kost::count();
-            $totalReviews = \App\Models\Review::count();
-
-            // Tarik semua data kosan beserta data pemiliknya buat diawasi admin
-            $kosts = \App\Models\Kost::with(['user', 'images'])->latest()->get();
-
-            return view('dashboard.admin', compact('totalStudents', 'totalOwners', 'totalKosts', 'totalReviews', 'kosts'));
-        })->name('admin.dashboard');
+        Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
 
         // --- RUTE MODERASI: ADMIN BISA HAPUS KOS YANG MELANGGAR ---
-        Route::delete('/admin/kost/{kost}', function (\App\Models\Kost $kost) {
-            // 1. Hapus semua file foto kosan dari folder storage
-            foreach ($kost->images as $img) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($img->image_path);
-            }
-            
-            // 2. Hapus data kosan dari database (otomatis menghapus review & occupancy karena cascade)
-            $kost->delete();
-
-            return back()->with('success', 'Kos berhasil di-take down oleh Admin karena melanggar aturan!');
-        })->name('admin.kost.destroy');
+        Route::delete('/admin/kost/{kost}', [AdminController::class, 'destroyKost'])->name('admin.kost.destroy');
 
         // ==========================================
         // RUTE KELOLA DATA MASTER (KAMPUS)
         // ==========================================
-        Route::get('/admin/campuses', function () {
-            $campuses = \App\Models\Campus::orderBy('name', 'asc')->get();
-            return view('dashboard.campuses', compact('campuses'));
-        })->name('admin.campuses.index');
-
-        Route::post('/admin/campuses', function (\Illuminate\Http\Request $request) {
-            $request->validate(['name' => 'required|string|max:255']);
-            \App\Models\Campus::create(['name' => $request->name]);
-            return back()->with('success', 'Kampus baru berhasil ditambahkan!');
-        })->name('admin.campuses.store');
-
-        Route::delete('/admin/campuses/{campus}', function (\App\Models\Campus $campus) {
-            $campus->delete();
-            return back()->with('success', 'Kampus berhasil dihapus!');
-        })->name('admin.campuses.destroy');
+        Route::get('/admin/campuses', [AdminController::class, 'campusIndex'])->name('admin.campuses.index');
+        Route::post('/admin/campuses', [AdminController::class, 'campusStore'])->name('admin.campuses.store');
+        Route::delete('/admin/campuses/{campus}', [AdminController::class, 'campusDestroy'])->name('admin.campuses.destroy');
 
         // ==========================================
         // RUTE KELOLA DATA MASTER (FASILITAS)
         // ==========================================
-        Route::get('/admin/facilities', function () {
-            $facilities = \App\Models\Facility::orderBy('name', 'asc')->get();
-            return view('dashboard.facilities', compact('facilities'));
-        })->name('admin.facilities.index');
-
-        Route::post('/admin/facilities', function (\Illuminate\Http\Request $request) {
-            $request->validate(['name' => 'required|string|max:255']);
-            \App\Models\Facility::create(['name' => $request->name]);
-            return back()->with('success', 'Fasilitas baru berhasil ditambahkan!');
-        })->name('admin.facilities.store');
-
-        Route::delete('/admin/facilities/{facility}', function (\App\Models\Facility $facility) {
-            $facility->delete();
-            return back()->with('success', 'Fasilitas berhasil dihapus!');
-        })->name('admin.facilities.destroy');
+        Route::get('/admin/facilities', [AdminController::class, 'facilityIndex'])->name('admin.facilities.index');
+        Route::post('/admin/facilities', [AdminController::class, 'facilityStore'])->name('admin.facilities.store');
+        Route::delete('/admin/facilities/{facility}', [AdminController::class, 'facilityDestroy'])->name('admin.facilities.destroy');
 
         // ==========================================
         // RUTE KELOLA DATA MASTER (USER)
         // ==========================================
-        Route::get('/admin/users', function () {
-            // Tarik semua data user dari terbaru ke terlama
-            $users = \App\Models\User::orderBy('created_at', 'desc')->get();
-            return view('dashboard.users', compact('users'));
-        })->name('admin.users.index');
-
-        // Rute untuk mengubah Role / Jabatan User
-        Route::put('/admin/users/{user}', function (\Illuminate\Http\Request $request, \App\Models\User $user) {
-            $request->validate(['role' => 'required|in:admin,owner,student']);
-            
-            // Cegah admin ngubah jabatannya sendiri jadi student (biar ga bunuh diri)
-            if (auth()->id() === $user->id && $request->role !== 'admin') {
-                return back()->with('error', 'Lu ga bisa nurunin jabatan lu sendiri bang!');
-            }
-
-            $user->update(['role' => $request->role]);
-            return back()->with('success', 'Role user berhasil diperbarui!');
-        })->name('admin.users.update');
-
-        // Rute untuk menghapus User nakal
-        Route::delete('/admin/users/{user}', function (\App\Models\User $user) {
-            if (auth()->id() === $user->id) {
-                return back()->with('error', 'Lu ga bisa hapus akun lu sendiri bang!');
-            }
-            $user->delete();
-            return back()->with('success', 'User berhasil dihapus dari sistem!');
-        })->name('admin.users.destroy');
+        Route::get('/admin/users', [AdminController::class, 'userIndex'])->name('admin.users.index');
+        Route::put('/admin/users/{user}', [AdminController::class, 'userUpdate'])->name('admin.users.update');
+        Route::delete('/admin/users/{user}', [AdminController::class, 'userDestroy'])->name('admin.users.destroy');
     });
+
+});
 
 require __DIR__.'/auth.php';

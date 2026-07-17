@@ -150,6 +150,11 @@ class KostController extends Controller
             abort(403, 'Bukan kosan lu bang!');
         }
 
+        // Hapus semua file foto kos dari folder storage
+        foreach ($kost->images as $img) {
+            Storage::disk('public')->delete($img->image_path);
+        }
+
         $kost->delete();
 
         return redirect()->route('owner.dashboard')->with('success', 'Data kos berhasil dihapus dari sistem.');

@@ -1,53 +1,44 @@
 <x-guest-layout>
-    <div class="row justify-content-center mt-5">
-        <div class="col-md-5">
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-success text-white text-center py-3">
-                    <h4 class="mb-0">Masuk ke KostReview</h4>
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+        <div class="bg-navy px-6 py-4 text-center">
+            <h4 class="text-xl font-bold text-white">Masuk ke KostReview</h4>
+        </div>
+        <div class="p-6">
+
+            @if (session('status'))
+                <div class="bg-green-50 text-green-800 rounded-lg px-4 py-3 mb-4 text-sm">
+                    {{ session('status') }}
                 </div>
-                <div class="card-body p-4">
-                    
-                    <!-- Alert jika ada pesan dari sistem -->
-                    @if (session('status'))
-                        <div class="alert alert-success mb-3">
-                            {{ session('status') }}
-                        </div>
-                    @endif
+            @endif
 
-                    <form method="POST" action="{{ route('login') }}">
-                        @csrf
-                        
-                        <!-- Input Email -->
-                        <div class="mb-3">
-                            <label for="email" class="form-label fw-bold">Alamat Email</label>
-                            <input type="email" class="form-control" id="email" name="email" value="{{ old('email') }}" required autofocus>
-                            @error('email') <span class="text-danger small">{{ $message }}</span> @enderror
-                        </div>
+            <form method="POST" action="{{ route('login') }}">
+                @csrf
 
-                        <!-- Input Password -->
-                        <div class="mb-3">
-                            <label for="password" class="form-label fw-bold">Password</label>
-                            <input type="password" class="form-control" id="password" name="password" required>
-                            @error('password') <span class="text-danger small">{{ $message }}</span> @enderror
-                        </div>
-
-                        <!-- Fitur Ingat Saya -->
-                        <div class="mb-4 form-check">
-                            <input type="checkbox" class="form-check-input" id="remember_me" name="remember">
-                            <label class="form-check-label" for="remember_me">Ingat Saya</label>
-                        </div>
-
-                        <!-- Tombol Login -->
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-success btn-lg">Login</button>
-                        </div>
-                        
-                        <div class="mt-3 text-center">
-                            <a href="{{ route('register') }}" class="text-decoration-none">Belum punya akun? Daftar di sini</a>
-                        </div>
-                    </form>
+                <div class="mb-4">
+                    <label for="email" class="block text-sm font-semibold text-gray-700 mb-1">Alamat Email</label>
+                    <input type="email" class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm" id="email" name="email" value="{{ old('email') }}" required autofocus>
+                    @error('email') <span class="text-red-600 text-xs mt-1 block">{{ $message }}</span> @enderror
                 </div>
-            </div>
+
+                <div class="mb-4">
+                    <label for="password" class="block text-sm font-semibold text-gray-700 mb-1">Password</label>
+                    <input type="password" class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm" id="password" name="password" required>
+                    @error('password') <span class="text-red-600 text-xs mt-1 block">{{ $message }}</span> @enderror
+                </div>
+
+                <div class="mb-6 flex items-center">
+                    <input type="checkbox" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" id="remember_me" name="remember">
+                    <label class="ml-2 text-sm text-gray-600" for="remember_me">Ingat Saya</label>
+                </div>
+
+                <button type="submit" class="w-full bg-navy hover:bg-blue-900 text-white font-bold py-3 px-4 rounded-lg transition text-sm">
+                    Login
+                </button>
+
+                <div class="mt-4 text-center text-sm">
+                    <a href="{{ route('register') }}" class="text-navy hover:underline font-medium">Belum punya akun? Daftar di sini</a>
+                </div>
+            </form>
         </div>
     </div>
 </x-guest-layout>
